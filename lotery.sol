@@ -84,6 +84,15 @@ contract Lotery {
         return richOwner;
     }
 
+    /**
+     * @dev invalidateContract destroy this contract
+     **/
+    function invalidateContract() public {
+        require(msg.sender == owner, "Only owner can destroy this contract");
+
+        selfdestruct(payable(address(this)));
+    }
+
     function getRealatory()
         public
         view
