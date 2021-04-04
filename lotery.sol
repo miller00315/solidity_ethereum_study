@@ -1,7 +1,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 contract GuardaLoteria {
-    uint256 numeroSorteado;
+    uint256 prizeDrawNumber;
     address owner;
     uint256 prizeDrawCount = 0;
     bool richOwner = false;
@@ -9,7 +9,7 @@ contract GuardaLoteria {
     constructor(uint256 initialValue) {
         require(msg.sender.balance >= 99 ether);
 
-        numeroSorteado = initialValue;
+        prizeDrawNumber = initialValue;
         owner = msg.sender;
         prizeDrawCount = 1;
 
@@ -20,13 +20,22 @@ contract GuardaLoteria {
         }
     }
 
-    function set(uint256 enviado) public {
+    /**
+     *@dev set the prizeDrawNumber
+     *@param sended new value of prizeDrawNumber
+     */
+
+    function setPrizeDrawNumber(uint256 sended) public {
         prizeDrawCount++;
-        numeroSorteado = enviado;
+        prizeDrawNumber = sended;
     }
 
-    function get() public view returns (uint256) {
-        return numeroSorteado;
+    /**
+     *@dev getPrizeDrawNumber return the current value of prizeDrawNumber
+     */
+
+    function getPrizeDrawNumber() public view returns (uint256) {
+        return prizeDrawNumber;
     }
 
     function getCount() public view returns (uint256) {
