@@ -57,14 +57,23 @@ contract Lotery {
         return prizeDrawNumber;
     }
 
+    /**
+     *@dev getCount return the count of preize draw
+     */
     function getCount() public view returns (uint256) {
         return prizeDrawCount;
     }
 
+    /**
+     *@dev getOwner return the address of the owner
+     */
     function getOwner() public view returns (address) {
         return owner;
     }
 
+    /**
+     *@dev fetOwnerRich return the value of richOwner (true or false)
+     */
     function fetOwnerRich() public view returns (bool) {
         return richOwner;
     }
