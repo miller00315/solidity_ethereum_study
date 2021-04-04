@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
 
-contract GuardaLoteria {
+contract Lotery {
     uint256 prizeDrawNumber;
     address owner;
     uint256 prizeDrawCount = 0;
@@ -21,20 +21,38 @@ contract GuardaLoteria {
         }
     }
 
+    event SendedAmount(address payAddress, uint256 amount);
+
     /**
      *@dev set the prizeDrawNumber
      *@param sended new value of prizeDrawNumber
      */
-
-    function setPrizeDrawNumber(uint256 sended) public {
+    function set(uint256 sended) public payable withMinValue(1000) {
         prizeDrawCount++;
         prizeDrawNumber = sended;
+
+        if (msg.value > 1000) {
+            uint256 amount = msg.value - 1000;
+
+            // Set a payable addres to send a value
+            payable(address(uint160(msg.sender))).transfer(amount);
+
+            emit SendedAmount(msg.sender, amount);
+        }
+    }
+
+    /**
+     *@dev withMinValue check if is sended the min value of ether
+     * @param minValue minimun value of ether
+     **/
+    modifier withMinValue(uint256 minValue) {
+        require(msg.value >= minValue, "Not enough ether was sent");
+        _;
     }
 
     /**
      *@dev getPrizeDrawNumber return the current value of prizeDrawNumber
      */
-
     function getPrizeDrawNumber() public view returns (uint256) {
         return prizeDrawNumber;
     }
