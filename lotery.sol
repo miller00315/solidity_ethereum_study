@@ -7,20 +7,25 @@ struct OwnerStruct {
     bool richOwner;
 }
 
-contract Lotery {
-    uint256 private prizeDrawNumber;
-    OwnerStruct private owner;
-    uint16 private prizeDrawCount = 0;
+struct DrawStruct {
+    uint256 date;
+    uint256 prizeDrawNumber;
+    address sender;
+}
 
-    uint16[] private numbersDrawn;
+contract Lotery {
+    OwnerStruct private owner;
+    DrawStruct[] private numbersDrawn;
 
     constructor(uint256 initialValue) {
         require(msg.sender.balance >= 99 ether);
 
         owner = OwnerStruct(msg.sender, "", msg.sender.balance > 20);
 
-        prizeDrawNumber = initialValue;
-        prizeDrawCount = 1;
+        DrawStruct memory draw =
+            DrawStruct(block.timestamp, initialValue, msg.sender);
+
+        numbersDrawn.push(draw);
     }
 
     event SendedAmount(address payAddress, uint256 amount);
@@ -35,9 +40,10 @@ contract Lotery {
             "Only the contract's owner can set the value"
         );
 
-        prizeDrawNumber = sended;
+        DrawStruct memory draw =
+            DrawStruct(block.timestamp, sended, msg.sender);
 
-        numbersDrawn.push(sended);
+        numbersDrawn.push(draw);
 
         if (msg.value > 1000) {
             uint256 amount = msg.value - 1000;
@@ -47,8 +53,6 @@ contract Lotery {
 
             emit SendedAmount(msg.sender, amount);
         }
-
-        prizeDrawCount++;
     }
 
     /**
@@ -73,15 +77,15 @@ contract Lotery {
     /**
      *@dev getPrizeDrawNumber return the current value of prizeDrawNumber
      */
-    function getPrizeDrawNumber() public view returns (uint256) {
-        return prizeDrawNumber;
+    function getLastPrizeDrawNumber() public view returns (uint256) {
+        return numbersDrawn[numbersDrawn.length - 1].prizeDrawNumber;
     }
 
     /**
      *@dev getCount return the count of preize draw
      */
-    function getCount() public view returns (uint16) {
-        return prizeDrawCount;
+    function getCount() public view returns (uint256) {
+        return numbersDrawn.length;
     }
 
     /**
@@ -116,25 +120,27 @@ contract Lotery {
         returns (
             bool _richOwner,
             address _owner,
-            uint16 _priceDrawCount,
+            uint256 _priceDrawCount,
             uint256 _prizeDrawNumber,
             address _thisAddress,
             uint256 _balance,
             uint256 _blockTimestamp,
             string memory _ownerName,
-            uint16[] memory _numbersDrawn
+            DrawStruct[] memory _numbersDrawn,
+            uint256 _lastDate
         )
     {
         return (
             owner.richOwner,
             owner.ownerAddress,
-            prizeDrawCount,
-            prizeDrawNumber,
+            numbersDrawn.length,
+            numbersDrawn[numbersDrawn.length - 1].prizeDrawNumber,
             address(this),
             address(this).balance,
             block.timestamp,
             owner.ownerName,
-            numbersDrawn
+            numbersDrawn,
+            numbersDrawn[numbersDrawn.length - 1].date
         );
     }
 }
