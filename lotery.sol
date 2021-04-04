@@ -1,24 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
 
+struct OwnerStruct {
+    address ownerAddress;
+    string ownerName;
+    bool richOwner;
+}
+
 contract Lotery {
-    uint256 prizeDrawNumber;
-    address owner;
-    uint16 prizeDrawCount = 0;
-    bool richOwner = false;
+    uint256 private prizeDrawNumber;
+    OwnerStruct private owner;
+    uint16 private prizeDrawCount = 0;
+
+    uint16[] private numbersDrawn;
 
     constructor(uint256 initialValue) {
         require(msg.sender.balance >= 99 ether);
 
-        prizeDrawNumber = initialValue;
-        owner = msg.sender;
-        prizeDrawCount = 1;
+        owner = OwnerStruct(msg.sender, "", msg.sender.balance > 20);
 
-        if (msg.sender.balance > 20) {
-            richOwner = true;
-        } else {
-            richOwner = false;
-        }
+        prizeDrawNumber = initialValue;
+        prizeDrawCount = 1;
     }
 
     event SendedAmount(address payAddress, uint256 amount);
@@ -29,11 +31,13 @@ contract Lotery {
      */
     function set(uint16 sended) public payable withMinValue(1000) {
         require(
-            msg.sender == owner,
+            msg.sender == owner.ownerAddress,
             "Only the contract's owner can set the value"
         );
 
         prizeDrawNumber = sended;
+
+        numbersDrawn.push(sended);
 
         if (msg.value > 1000) {
             uint256 amount = msg.value - 1000;
@@ -45,6 +49,16 @@ contract Lotery {
         }
 
         prizeDrawCount++;
+    }
+
+    /**
+     *@dev setUserName set the owner's name
+     *@param name the owner's name that will be set
+     */
+    function setUserName(string memory name) public {
+        require(owner.ownerAddress != address(0), "Owner is not set");
+
+        owner.ownerName = name;
     }
 
     /**
@@ -74,23 +88,26 @@ contract Lotery {
      *@dev getOwner return the address of the owner
      */
     function getOwner() public view returns (address) {
-        return owner;
+        return owner.ownerAddress;
     }
 
     /**
      *@dev fetOwnerRich return the value of richOwner (true or false)
      */
     function fetOwnerRich() public view returns (bool) {
-        return richOwner;
+        return owner.richOwner;
     }
 
     /**
      * @dev invalidateContract destroy this contract
      **/
     function invalidateContract() public {
-        require(msg.sender == owner, "Only owner can destroy this contract");
+        require(
+            msg.sender == owner.ownerAddress,
+            "Only owner can destroy this contract"
+        );
 
-        selfdestruct(payable(address(this)));
+        selfdestruct(payable(owner.ownerAddress));
     }
 
     function getRealatory()
@@ -102,16 +119,22 @@ contract Lotery {
             uint16 _priceDrawCount,
             uint256 _prizeDrawNumber,
             address _thisAddress,
-            uint256 _balance
+            uint256 _balance,
+            uint256 _blockTimestamp,
+            string memory _ownerName,
+            uint16[] memory _numbersDrawn
         )
     {
         return (
-            richOwner,
-            owner,
+            owner.richOwner,
+            owner.ownerAddress,
             prizeDrawCount,
             prizeDrawNumber,
             address(this),
-            address(this).balance
+            address(this).balance,
+            block.timestamp,
+            owner.ownerName,
+            numbersDrawn
         );
     }
 }
