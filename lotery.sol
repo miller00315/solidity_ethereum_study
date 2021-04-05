@@ -16,6 +16,8 @@ struct DrawStruct {
 contract Lotery {
     OwnerStruct private owner;
     DrawStruct[] private numbersDrawn;
+    address[] private winners;
+    uint256 totalAward;
 
     constructor(uint256 initialValue) {
         require(msg.sender.balance >= 99 ether);
@@ -28,18 +30,38 @@ contract Lotery {
         numbersDrawn.push(draw);
     }
 
+    /**
+     *@dev withMinValue check if is sended the min value of ether
+     *@param minValue minimun value of ether
+     **/
+    modifier withMinValue(uint256 minValue) {
+        require(msg.value >= minValue, "Not enough ether was sent");
+        _;
+    }
+
+    /**
+     *@dev onlyOwnerPermision check if the user is the contract owner
+     */
+    modifier onlyOwnerPermission() {
+        require(
+            msg.sender == owner.ownerAddress,
+            "Only the contract's owner can set the value"
+        );
+        _;
+    }
+
     event SendedAmount(address payAddress, uint256 amount);
 
     /**
      *@dev set the prizeDrawNumber
      *@param sended new value of prizeDrawNumber
      */
-    function set(uint16 sended) public payable withMinValue(1000) {
-        require(
-            msg.sender == owner.ownerAddress,
-            "Only the contract's owner can set the value"
-        );
-
+    function set(uint16 sended)
+        public
+        payable
+        withMinValue(1000)
+        onlyOwnerPermission()
+    {
         DrawStruct memory draw =
             DrawStruct(block.timestamp, sended, msg.sender);
 
@@ -63,15 +85,6 @@ contract Lotery {
         require(owner.ownerAddress != address(0), "Owner is not set");
 
         owner.ownerName = name;
-    }
-
-    /**
-     *@dev withMinValue check if is sended the min value of ether
-     *@param minValue minimun value of ether
-     **/
-    modifier withMinValue(uint256 minValue) {
-        require(msg.value >= minValue, "Not enough ether was sent");
-        _;
     }
 
     /**
@@ -112,6 +125,33 @@ contract Lotery {
         );
 
         selfdestruct(payable(owner.ownerAddress));
+    }
+
+    function distibuteAward()
+        public
+        returns (
+            uint256 _individualAward,
+            uint256 _remainingAward,
+            uint256 _sendedAward
+        )
+    {
+        if (winners.length > 0) {
+            uint256 individualAward = totalAward / winners.length;
+            uint256 remainingAward = totalAward;
+            uint256 sendedAward = 0;
+
+            for (uint256 position = 0; position < winners.length; position++) {
+                payable(address(uint160(winners[position]))).transfer(
+                    individualAward
+                );
+                remainingAward = remainingAward - individualAward;
+                sendedAward = sendedAward + individualAward;
+            }
+
+            return (individualAward, remainingAward, sendedAward);
+        }
+
+        return (0, totalAward, 0);
     }
 
     function getRealatory()
