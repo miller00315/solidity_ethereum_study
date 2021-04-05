@@ -13,7 +13,7 @@ struct DrawStruct {
     address sender;
 }
 
-contract Lotery {
+contract Lottery {
     OwnerStruct private owner;
     DrawStruct[] private numbersDrawn;
     address[] private winners;
